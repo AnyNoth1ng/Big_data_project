@@ -1,0 +1,74 @@
+3 задание: установка Apache HIVE и создание таблиц
+0. Распаковать архив с hadoop который был скачен ранее. Или скачать и распаковать.
+wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz - скачать
+tar -xvzf hadoop-3.4.0.tar.gz - распаковать
+копируем с nn на jn core-site.xml, hdfs-site.xml
+scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/core-site.xml ./hadoop-3.4.0/etc/hadoop/core-site.xml
+scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/hdfs-site.xml ./hadoop-3.4.0/etc/hadoop/hdfs-site.xml (не уверен что это нужно, но я сделал)
+
+1. Заходим на JN - ssh -i .ssh/big_data_rsa.pub team@176.109.81.244
+2. Переходим на NN - ssh team-31-nn
+3. Устанавливаем постгрес - sudo apt install postgresql
+4. Переходим в пользователя postgres - sudo -i -u postgres
+5. Подключимся к консоли постгрес - psql 
+6. Создаем БД - CREATE DATABASE metascore;
+7. Создаем юзера с паролем - CREATE hive with password 'тут пишем пароль';
+8. Раздаем права GRANT ALL PRIVILEGES ON DATABASE 'metascore' TO hive;
+9. ALTER DATABASE metascore OWNER TO hive;
+10. Выходим из консоли - \q
+11. Отключаемся от пользователя postgres - exit
+12. Меняем конфиг - sudo nano /etc/postgresql/16/main/postgresql.conf
+	Тут задаем listen_addresses = 'team-31-nn'
+	Сохраняем и выходим
+13. Меняем конфиг - sudo nano /etc/postgresql/16/main/pg_hba.conf
+	Тут добавляем строчку после #IPv4 local connection:
+	host    metascore    hive    192.168.1.2/32 (тут ваш адрес)    password
+	Сохраняем и выходим
+14. Перезапускаем постгрес - sudo systemctl restart  postgresql
+15. Выходим с NN, попадаем на JN
+16. Устанавливаем постгрес на JN - sudo apt install postgresql-client-16
+17.После установки пробуем подключиться - psql -h team-31-nn -p 5432 -U hive -W -d metascore
+18. Подключились, теперь выходим \q
+19. Переключимся на пользователя Hadoop - sudo -i -u hadoop
+20. Скачиваем дистрибутив hive - wget https://dlcdn.apache.org/hive/hive-4.0.1/apache-hive-4.0.1-bin.tar.gz
+21. Распаковываем - tar -xvzf apache-hive-4.0.1-bin.tar.gz
+22. Переходим в папку дистрибутива - cd apache-hive-4.0.1-bin/lib
+23. Скачиваем драйвер - wget https://jdbc.postgresql.org/download/postgresql-42.7.4.jar
+24. Переходим в папку conf - cd ../conf
+25. Добавим и отредактируем файл - nano hive-site.xml
+
+26. Поменяем конфиги - nano ~/.profile
+
+27. Проверяем что hive работает - hive -version
+28. Создаем временную папку - hdfs dfs -mkdir -p hdfs://team-31-nn:9000/tmp
+29. Создаем папку пользователя - hdfs dfs -mkdir -p hdfs://team-31-nn:9000/user/hive/warehouse
+30. Раздаем права на обе папки:
+	hdfs dfs -chmod g+w hdfs://team-31-nn:9000/tmp
+	hdfs dfs -chmod g+w hdfs://team-31-nn:9000/user/hive/warehouse
+31. Инициализируем - bin/schematool -dbType postgres -initSchema
+32. Запускаем наш hive server - hive --hiveconf hive.server2.enable.doAs=false --hiveconf hive.security.authorization.enabled=false -service hiveserver2 1>> /tmp/hs2.log 2>> /tmp/hs2.log &
+33. Подключимся к нему в менджере сессий, последовательно выполним несколько команд:
+tmux 
+beeline -u jdbc:hive2://team-31-jn:5433
+34. Далее создаем тестовую БД и проверяем ее:
+	CREATES DATABASE test;
+	SHOW DATABASES;
+	DESCRIBE DATABASE test;
+	Проверяем что все ок и возвращаемся обратно в терминал на JN
+35. Создадим на hdfs папку для экспериментов с файлами и дадим на нее права:
+hdfs dfs -mkdir hdfs://team-31-nn:9000/input
+hdfs dfs -chmod g+w hdfs://team-31-nn:9000/input
+
+36. Перекидывааем файл в папку для экспериментов - hdfs dfs -put path/file_name hdfs://team-31-nn:9000/input/ (перепроверить вот этот кусок)
+37. Опять подключаемся в консоли самого hive (как в пункте 33) - beeline -u jdbc:hive2://team-31-jn:5433
+38. Переключимся на нужную БД - use test;
+39. Создадим таблицу (далее будет все одна команда с переходом на новую строку и tab):
+CREATE TABLE IF NOT EXISTS test.название таблицы(
+	название_столбца_1  тип_столбца,
+	название_столбца_2  тип_столбца,
+	название_столбца_3  тип_столбца,
+	и т.д.)
+	ROW FORMAT DELIMITED FIELDS TERMINATED BY 'тут пишем разделитель который в исходном файле'
+40. Для проверки вызовем подробное описание таблицы - SHOW TABLES;
+41. Далее грузим данные из нашего файла в таблицу:
+LOAD DATA INPATH '/input/название нашего файла.csv' INTO TABLE test.название нашей таблицы

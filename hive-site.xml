@@ -1,0 +1,36 @@
+<configuration>
+    <property>
+        <name>hive.server2.authentication</name>
+        <value>NONE</value>
+    </property>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://team-31-nn:9000</value>
+    </property>
+    <property>
+        <name>hive.metascore.warehouse.dir</name>
+        <value>hdfs://team-31-nn:9000/user/hive/warehouse</value>
+    </property>
+    <property>
+        <name>hive.server2.thrift.port</name>
+        <value>5433</value>
+        <description>TCP port number to listen on, default 10000</description>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://team-31-nn:5432/metascore</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>hive</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>1tblO#LR%=plsql</value>
+    </property>
+</configuration>
+

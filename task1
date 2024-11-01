@@ -1,0 +1,111 @@
+1) создаем пользователя на jn:
+sudo adduser hadoop
+создаем ему пароль
+2) переходим в пользователя hadoop: sudo -i -u hadoop
+3) генерируем ssh ключи: 
+ssh-keygen
+4) копируем публичный ключ: cat .ssh/id_ed***.pub
+5) скачиваем дистрибутив hadoop: wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz
+6) выходим из пользователя hadoop: exit
+7) редактируем hosts: sudo /etc/hosts
+
+192.168.1.126 team-31-jn
+192.168.1.127 team-31-nn
+192.168.1.128 team-31-dn-0
+192.168.1.129 team-31-dn-1
+
+8) проверяем отклик по имени хоста ping team-31-nn
+9) заходим на team-31-nn по ssh (используем пароль от общей учетки): ssh team-31-nn
+10) редактируем hosts на team-31-nn: sudo /etc/hosts
+
+192.168.1.126 team-31-jn
+192.168.1.127 team-31-nn
+192.168.1.128 team-31-dn-0
+192.168.1.129 team-31-dn-1
+
+11) создаем пользователя на team-31-nn: sudo adduser hadoop
+12) переходим  в пользователя hadoop на nn: sudo -i -u hadoop
+13) генерируем ssh ключи на team-31-nn для : ssh-keygen
+14) копируем публичный ключ: cat .ssh/id_ed***.pub
+15) выходим из учетки hadoop на nn: exit
+16) переходим на team-31-dn-0 по ssh: ssh team-31-dn-0
+17) редактируем hosts на  team-31-dn-0: sudo /etc/hosts
+
+192.168.1.126 team-31-jn
+192.168.1.127 team-31-nn
+192.168.1.128 team-31-dn-0
+192.168.1.129 team-31-dn-1
+
+18) создаем пользователя на team-31-dn-0: sudo adduser hadoop
+19) переходим  в пользователя hadoop на dn: sudo -i -u hadoop
+20) генерируем ssh ключи на team-31-dn для : ssh-keygen
+21) копируем публичный ключ: cat .ssh/id_ed***.pub
+22) выходим из учетки hadoop на dn: exit
+23) переходим на team-31-dn-0 по ssh: ssh team-31-dn-0
+24) редактируем hosts на  team-31-dn-0: sudo /etc/hosts
+
+192.168.1.126 team-31-jn
+192.168.1.127 team-31-nn
+192.168.1.128 team-31-dn-0
+192.168.1.129 team-31-dn-1
+
+25) создаем пользователя на team-31-dn-01: sudo adduser hadoop
+26) переходим  в пользователя hadoop на dn: sudo -i -u hadoop
+27) генерируем ssh ключи на team-31-dn-01 для : ssh-keygen
+28) копируем публичный ключ: cat .ssh/id_ed***.pub
+29) выходим из учетки hadoop на dn-01: exit
+30) переходим на jn и входим в учетку hadoop:
+sudo -i -u hadoop 
+31) записываем ключи на jn:
+vim .ssh/authorized_keys
+32) из jn копируем файл authorized_keys на nn, dn-0 и dn-1: scp .ssh/authorized_keys team-31-dn-1:/home/hadoop/.ssh/
+33) скачанный ранее дистрибутив hadoop из jn ноды скопировать на остальные ноды (dn-0, dn-1 и nn): scp hadoop-3.4.0-src.tar.gz team-31-dn-1:/home/hadoop
+34) на всех нодах распаковываем дистрибутив: tar -xvzf hadoop-3.4.0.tar.gz 
+35) переходим на nn: ssh team-31-nn
+36) проверяем версию java на nn: java -version
+37) создать файл ./profile: vim ~/.prolfile (нужно ли профиль тоже копировать везде?)
+export HADOOP_HOME=/home/hadoop/hadoop-3.4.0
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+38) применить профиль: source ~/.profile
+39) проверить версию hadoop:
+hadoop version
+40) переходим в  hadoop-3.4.0/etx/hadoop:  cd hadoop-3.4.0/etx/hadoop
+41) в файл hadoop-env.sh добавляем переменную окружения для JAVA: 
+vim hadoop-env.sh
+
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+42) раскопируем файлик hadoop-env.sh на dn-0 и dn-1:
+scp hadoop-env.sh team-31-dn-0:/home/hadoop/hadoop-3.4.0/etc/hadoop
+scp hadoop-env.sh team-31-dn-1:/home/hadoop/hadoop-3.4.0/etc/hadoop
+43) создаем файл core-site.xml на nn:
+<configuration>
+        <property>
+                <name>fs.defaultFS</name>
+                <value>hdfs://team-31-nn:9000</value>
+        </property>
+</configuration>
+
+44) создаем файл hdfs-site.xml на nn:
+<configuration>
+	<property>
+		<name>dfs.replication</name>
+		<value>3</value>
+	</property>
+	<property>
+        <name>dfs.namenode.secondary.http-address</name>
+        <value>team-31-nn:9868</value>
+	</property>
+</configuration>
+
+
+45) создаем файл workers на nn:
+team-31-nn
+team-31-dn-0
+team-31-dn-1
+
+46) скопировать файлы из 43, 44, 45 на dn-0 и dn-1
+47) форматируем хранилище командой:
+bin/hdfs namenode -format
+48) запускаем dfs: sbin/start-dfs.sh

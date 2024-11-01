@@ -1,0 +1,107 @@
+1) Заходим на nn
+2) создаем файлик mapred-site.xml:
+<configuration>
+        <property>
+                <name>mapreduce.framework.name</name>
+                <value>yarn</value>
+        </property>
+        <property>
+                <name>mapreduce.application.classpath</name>
+                <value>$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*</value>
+        </property>
+</configuration>
+
+3) создаем файлик yarn-site.xml:
+<configuration>
+        <property>
+                <name>yarn.nodemanager.aux-services</name>
+                <value>mapreduce_shuffle</value>
+        </property>
+        <property>
+                <name>yarn.nodemanager.env-whitelist</name>
+                <value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ,HADOOP_MAPRED_HOME</value>
+        </property>
+</configuration>
+
+4) копируем файлы mapred-site.xml и yarn-site.xml командой на dn-0 и dn-1:
+scp mapred-site.xml team-31-dn-0:/home/hadoop/hadoop-3.4.0/ets/
+scp mapred-site.xml team-31-dn-1:/home/hadoop/hadoop-3.4.0/etc/
+scp yarn-site.xml team-31-dn-0:/home/hadoop/hadoop-3.4.0/etc/
+scp yarn-site.xml team-31-dn-1:/home/hadoop/hadoop-3.4.0/etc/
+
+5) запуск yarn: sbin/start-yarn.sh
+6) поднять history server: mapred --daemon start historyserver
+
+7) Надо ли делать для всех остальных серверов?
+
+8) Возвращаемся на jn под пользователем team:
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/nn
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/ya
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/dh
+
+9) Создаем пароль для hadoop nginx:
+sudo apt install apache2-utils
+sudo htpasswd -c /etc/nginx/.htpasswd hadoop
+задайте пароль
+
+10) Редактируем файл /etc/nginx/sites-available/nn:
+server {
+	listen 19888 default_server;
+
+	root /var/www/html;
+
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	location / {
+		proxy_pass http://team-31-nn:19888;
+		auth_basic "Restricted Access";
+		auth_basic_user_file /etc/nginx/.htpasswd;
+	}
+}
+
+11) Редактируем файл /etc/nginx/sites-available/ya:
+
+server {
+	listen 8088 default_server;
+
+	root /var/www/html;
+
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	location / {
+		proxy_pass http://team-31-nn:8088;
+		auth_basic "Restricted Access";
+		auth_basic_user_file /etc/nginx/.htpasswd;
+	}
+}
+
+12) Редактируем файл /etc/nginx/sites-available/dh:
+
+server {
+	listen 19888 default_server;
+
+	root /var/www/html;
+
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	location / {
+		proxy_pass http://team-31-nn:19888;
+		auth_basic "Restricted Access";
+		auth_basic_user_file /etc/nginx/.htpasswd;
+	}
+
+}
+
+13) Настраиваем ссылки:
+sudo ln -s /etc/nginx/sites-available/nn /etc/nginx/sites-enabled/nn
+sudo ln -s /etc/nginx/sites-available/ya /etc/nginx/sites-enabled/ya
+sudo ln -s /etc/nginx/sites-available/dh /etc/nginx/sites-enabled/dh
+
+14) Перезагружаем nginx:
+sudo systemctl reload nginx
