@@ -1,4 +1,7 @@
 3 задание: установка Apache HIVE и создание таблиц
+
+1. Заходим на JN - ssh -i .ssh/big_data_rsa.pub team@176.109.81.244
+
 0. Распаковать архив с hadoop который был скачен ранее. Или скачать и распаковать.
 wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz - скачать
 tar -xvzf hadoop-3.4.0.tar.gz - распаковать
@@ -6,7 +9,6 @@ tar -xvzf hadoop-3.4.0.tar.gz - распаковать
 scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/core-site.xml ./hadoop-3.4.0/etc/hadoop/core-site.xml
 scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/hdfs-site.xml ./hadoop-3.4.0/etc/hadoop/hdfs-site.xml (не уверен что это нужно, но я сделал)
 
-1. Заходим на JN - ssh -i .ssh/big_data_rsa.pub team@176.109.81.244
 2. Переходим на NN - ssh team-31-nn
 3. Устанавливаем постгрес - sudo apt install postgresql
 4. Переходим в пользователя postgres - sudo -i -u postgres
