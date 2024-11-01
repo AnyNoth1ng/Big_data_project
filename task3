@@ -74,3 +74,21 @@ CREATE TABLE IF NOT EXISTS test.название таблицы(
 40. Для проверки вызовем подробное описание таблицы - SHOW TABLES;
 41. Далее грузим данные из нашего файла в таблицу:
 LOAD DATA INPATH '/input/название нашего файла.csv' INTO TABLE test.название нашей таблицы
+
+
+Настройка NGINX (скорее всего это делается до 3 задания)
+1. Находимся на JN копируем - sudo cp /etc/nginx/site-available/nn /etc/nginx/sites-available/hv
+2. Открываем файл sudo nano /etc/nginx/sites-available/hv
+    Меняем порт под строкой server { на listen 10002
+    Пишем в строке
+        location / {
+            proxy_pass http://team-31-jn:10002;
+        }
+3. sudo ln -s /etc/nginx/sites-available/hv /etc/nginx/sites-enabled/hv
+4. sudo systemctl reload ngixn
+5. Заходим в hadoop - sudo -i -u hadoop
+6. Переход в папку - cd apache-hive-4.0.1-bin
+7. Запускаем наш hive server - hive --hiveconf hive.server2.enable.doAs=false --hiveconf hive.security.authorization.enabled=false -service hiveserver2 1>> /tmp/hs2.log 2>> /tmp/hs2.log &
+8. source conf/hive-env.sh
+9. Вот это вообще хз - beeline -u jdbc:hive2://team-31-jn:5433 -n scott -p tiger
+
