@@ -41,8 +41,8 @@ ssh-keygen
 20) генерируем ssh ключи на team-31-dn для : ssh-keygen
 21) копируем публичный ключ: cat .ssh/id_ed***.pub
 22) выходим из учетки hadoop на dn: exit
-23) переходим на team-31-dn-0 по ssh: ssh team-31-dn-0
-24) редактируем hosts на  team-31-dn-0: sudo /etc/hosts
+23) переходим на team-31-dn-1 по ssh: ssh team-31-dn-1
+24) редактируем hosts на  team-31-dn-1: sudo /etc/hosts
 
 192.168.1.126 team-31-jn
 192.168.1.127 team-31-nn
@@ -70,7 +70,7 @@ export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 38) применить профиль: source ~/.profile
 39) проверить версию hadoop:
 hadoop version
-40) переходим в  hadoop-3.4.0/etx/hadoop:  cd hadoop-3.4.0/etx/hadoop
+40) переходим в  hadoop-3.4.0/etc/hadoop:  cd hadoop-3.4.0/etc/hadoop
 41) в файл hadoop-env.sh добавляем переменную окружения для JAVA: 
 vim hadoop-env.sh
 

@@ -7,15 +7,15 @@ wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz - �
 tar -xvzf hadoop-3.4.0.tar.gz - распаковать
 копируем с nn на jn core-site.xml, hdfs-site.xml
 scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/core-site.xml ./hadoop-3.4.0/etc/hadoop/core-site.xml
-scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/hdfs-site.xml ./hadoop-3.4.0/etc/hadoop/hdfs-site.xml (не уверен что это нужно, но я сделал)
+scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/hdfs-site.xml ./hadoop-3.4.0/etc/hadoop/hdfs-site.xml
 
 2. Переходим на NN - ssh team-31-nn
 3. Устанавливаем постгрес - sudo apt install postgresql
 4. Переходим в пользователя postgres - sudo -i -u postgres
 5. Подключимся к консоли постгрес - psql 
 6. Создаем БД - CREATE DATABASE metascore;
-7. Создаем юзера с паролем - CREATE hive with password 'тут пишем пароль';
-8. Раздаем права GRANT ALL PRIVILEGES ON DATABASE 'metascore' TO hive;
+7. Создаем юзера с паролем - CREATE ROLE hive WITH LOGIN PASSWORD 'тут пишем пароль';
+8. Раздаем права GRANT ALL PRIVILEGES ON DATABASE metascore TO hive;
 9. ALTER DATABASE metascore OWNER TO hive;
 10. Выходим из консоли - \q
 11. Отключаемся от пользователя postgres - exit
@@ -24,7 +24,7 @@ scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/hdfs-site.xml ./hadoo
 	Сохраняем и выходим
 13. Меняем конфиг - sudo nano /etc/postgresql/16/main/pg_hba.conf
 	Тут добавляем строчку после #IPv4 local connection:
-	host    metascore    hive    192.168.1.2/32 (тут ваш адрес)    password
+	host    metascore    hive    192.168.1.2/32 (тут ваш адрес jumpnode)    password
 	Сохраняем и выходим
 14. Перезапускаем постгрес - sudo systemctl restart  postgresql
 15. Выходим с NN, попадаем на JN
@@ -32,15 +32,23 @@ scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/hdfs-site.xml ./hadoo
 17.После установки пробуем подключиться - psql -h team-31-nn -p 5432 -U hive -W -d metascore
 18. Подключились, теперь выходим \q
 19. Переключимся на пользователя Hadoop - sudo -i -u hadoop
-20. Скачиваем дистрибутив hive - wget https://dlcdn.apache.org/hive/hive-4.0.1/apache-hive-4.0.1-bin.tar.gz
-21. Распаковываем - tar -xvzf apache-hive-4.0.1-bin.tar.gz
-22. Переходим в папку дистрибутива - cd apache-hive-4.0.1-bin/lib
+20. Скачиваем дистрибутив hive - wget https://archive.apache.org/dist/hive/hive-4.0.0-alpha-2/apache-hive-4.0.0-alpha-2-bin.tar.gz
+21. Распаковываем - tar -xvzf apache-hive-4.0.0-alpha-2-bin.tar.gz
+22. Переходим в папку дистрибутива - cd apache-hive-4.0.0-alpha-2-bin/lib
 23. Скачиваем драйвер - wget https://jdbc.postgresql.org/download/postgresql-42.7.4.jar
 24. Переходим в папку conf - cd ../conf
-25. Добавим и отредактируем файл - nano hive-site.xml
+25. Добавим и отредактируем файл - nano hive-site.xml (можно найти в репозитории)
 
 26. Поменяем конфиги - nano ~/.profile
+export HADOOP_HOME=/home/hadoop/hadoop-3.4.0
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+export HIVE_HOME=/home/hadoop/apache-hive-4.0.0-alpha-2-bin
+export HIVE_CONF_DIR=$HIVE_HOME/conf
+export HIVE_AUX_JARS_PATH=$HIVE_HOME/lib/*
+export PATH=$PATH:$HIVE_HOME/bin
 
+применяем профиль source ~/.profile
 27. Проверяем что hive работает - hive -version
 28. Создаем временную папку - hdfs dfs -mkdir -p hdfs://team-31-nn:9000/tmp
 29. Создаем папку пользователя - hdfs dfs -mkdir -p hdfs://team-31-nn:9000/user/hive/warehouse
@@ -53,7 +61,7 @@ scp hadoop@team-31-nn:/home/hadoop/hadoop-3.4.0/etc/hadoop/hdfs-site.xml ./hadoo
 tmux 
 beeline -u jdbc:hive2://team-31-jn:5433
 34. Далее создаем тестовую БД и проверяем ее:
-	CREATES DATABASE test;
+	CREATE DATABASE test;
 	SHOW DATABASES;
 	DESCRIBE DATABASE test;
 	Проверяем что все ок и возвращаемся обратно в терминал на JN
