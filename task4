@@ -2,7 +2,7 @@
 2. Кладем нужный файл: hdfs dfs -put pvv5_log_202412042111.csv hdfs://team-31-nn:9000/input/
 3. Ставим python: python3 -m venv hadoop
 4. Заходим под пользователем Hadoop: sudo -I -u Hadoop
-5. Активируем виртуальную среду: source venv/bin/activate
+5. Активируем виртуальную среду: source hadoop/bin/activate
 6. Устанавливаем необходимы библиотеки:
 	pip3 install ipython
 	pip3 install pyspark
