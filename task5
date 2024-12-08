@@ -1,0 +1,4 @@
+1. Заходим на JN - ssh -i .ssh/big_data_rsa.pub team@176.109.81.244
+2. Заходим под пользователем Hadoop: sudo -I -u Hadoop
+3. Активируем виртуальную среду: source hadoop/bin/activate
+4. Создаем ОАГ с prefect (пример создания) ./prefect_data_transform_task5.py
